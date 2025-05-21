@@ -9,7 +9,7 @@
 
 Emberly is a dating app built on a simple principle: **you get visibility proportional to your engagement**. Your profile is shown to others only as many times as you like other profiles, creating a balanced ecosystem that encourages meaningful interactions.
 
-![Emberly App Banner](docs/assets/banner_placeholder.png)
+<!--- ![Emberly App Banner](docs/assets/banner_placeholder.png) -->
 
 ## 🌟 Core Features
 
