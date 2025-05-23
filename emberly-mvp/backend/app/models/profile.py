@@ -1,6 +1,6 @@
 from datetime import date, datetime
 from typing import Optional, List
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 from uuid import uuid4
 
 
@@ -8,7 +8,8 @@ class Location(BaseModel):
     type: str = "Point"
     coordinates: List[float] = Field(..., description="[longitude, latitude]")
     
-    @validator('coordinates')
+    @field_validator('coordinates')
+    @classmethod
     def validate_coordinates(cls, v):
         if len(v) != 2:
             raise ValueError('coordinates must contain exactly 2 values [longitude, latitude]')
@@ -39,8 +40,8 @@ class ProfileInDB(ProfileBase):
 
 
 class Profile(ProfileInDB):
-    class Config:
-        schema_extra = {
+    model_config = {
+        "json_schema_extra": {
             "example": {
                 "user_id": "f0e4f84a-5134-4c44-b9c9-e2c3e4b6a16b",
                 "name": "John Doe",
@@ -62,4 +63,5 @@ class Profile(ProfileInDB):
                 "total_matches": 3,
                 "last_swipe_reset": "2023-05-01T00:00:00Z"
             }
-        } 
+        }
+    } 

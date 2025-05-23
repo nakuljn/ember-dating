@@ -1,40 +1,55 @@
-from motor.motor_asyncio import AsyncIOMotorClient as MotorClient
-from pymongo.errors import ConnectionFailure
-from app.core.config import settings
+from motor.motor_asyncio import AsyncIOMotorClient
+from pymongo.errors import ConnectionFailure, ServerSelectionTimeoutError
+from .config import settings
 import logging
 
 logger = logging.getLogger(__name__)
 
-class Database:
-    client = None
+class MongoDB:
+    client: AsyncIOMotorClient = None
     db = None
-    
-    @classmethod
-    async def connect_to_database(cls):
+
+    async def connect_to_database(self):
         """Connect to MongoDB database."""
         try:
-            cls.client = MotorClient(settings.MONGODB_URI)
-            cls.db = cls.client[settings.MONGODB_DB_NAME]
+            print("Connecting to MongoDB...")
+            # Set a shorter server selection timeout for faster feedback
+            self.client = AsyncIOMotorClient(
+                settings.MONGODB_URI,
+                serverSelectionTimeoutMS=5000
+            )
+            self.db = self.client[settings.MONGODB_DB_NAME]
             
             # Verify connection is working
-            await cls.client.admin.command('ping')
+            await self.client.admin.command('ping')
             logger.info(f"Connected to MongoDB at {settings.MONGODB_URI}")
             
-            return cls.db
-        except ConnectionFailure as e:
+            print("Connected to MongoDB!")
+            return self.db
+        except (ConnectionFailure, ServerSelectionTimeoutError) as e:
             logger.error(f"Could not connect to MongoDB: {e}")
-            raise
+            print(f"ERROR: Failed to connect to MongoDB: {e}")
+            print("Please check your MongoDB connection string and ensure MongoDB is running.")
+            if "mongodb+srv" in settings.MONGODB_URI:
+                print("For MongoDB Atlas, ensure your IP address is whitelisted in the Atlas console.")
+            return None
+        except Exception as e:
+            logger.error(f"Unexpected error connecting to MongoDB: {e}")
+            print(f"ERROR: Unexpected error connecting to MongoDB: {e}")
+            return None
     
-    @classmethod
-    async def close_database_connection(cls):
+    async def close_database_connection(self):
         """Close database connection."""
-        if cls.client:
-            cls.client.close()
+        if self.client:
+            print("Closing MongoDB connection...")
+            self.client.close()
             logger.info("Closed connection to MongoDB")
+            print("MongoDB connection closed!")
     
-    @classmethod
-    def get_db(cls):
+    def get_db(self):
         """Return database instance."""
-        return cls.db
+        if not self.db:
+            print("WARNING: Attempting to use database before connection is established")
+        return self.db
 
-mongodb = Database() 
+mongodb = MongoDB() 

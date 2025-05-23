@@ -1,23 +1,40 @@
 import os
 from typing import List, Optional
-from pydantic import BaseSettings, AnyHttpUrl
+from pydantic_settings import BaseSettings
+from pydantic import AnyHttpUrl
+from pathlib import Path
 
 class Settings(BaseSettings):
     # API settings
     API_V1_PREFIX: str = "/api/v1"
     PROJECT_NAME: str = "Emberly API"
     
-    # MongoDB settings
-    MONGODB_URI: str = os.getenv("MONGODB_URI", "mongodb://localhost:27017/emberly")
+    # MongoDB settings (for chat data)
+    MONGODB_URI: str = os.getenv(
+        "MONGODB_URI", 
+        "mongodb+srv://<username>:<password>@<cluster-url>/<dbname>?retryWrites=true&w=majority"
+    )
     MONGODB_DB_NAME: str = os.getenv("MONGODB_DB_NAME", "emberly")
     
+    # PostgreSQL settings (for structured data)
+    POSTGRES_USER: str = os.getenv("POSTGRES_USER", "nakuljn")
+    POSTGRES_PASSWORD: str = os.getenv("POSTGRES_PASSWORD", "")
+    POSTGRES_SERVER: str = os.getenv("POSTGRES_SERVER", "localhost")
+    POSTGRES_PORT: str = os.getenv("POSTGRES_PORT", "5432")
+    POSTGRES_DB: str = os.getenv("POSTGRES_DB", "emberly")
+    POSTGRES_URI: str = os.getenv(
+        "POSTGRES_URI",
+        f"postgresql+asyncpg://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_SERVER}:{POSTGRES_PORT}/{POSTGRES_DB}"
+    )
+    
     # JWT settings
-    JWT_SECRET_KEY: str = os.getenv("JWT_SECRET_KEY", "development_secret_key")
-    JWT_ALGORITHM: str = os.getenv("JWT_ALGORITHM", "HS256")
-    JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
+    JWT_SECRET_KEY: str = "development_secret_key"
+    JWT_ALGORITHM: str = "HS256"
+    JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     
     # Firebase settings
-    FIREBASE_PROJECT_ID: Optional[str] = os.getenv("FIREBASE_PROJECT_ID")
+    FIREBASE_PROJECT_ID: str = ""
+    FIREBASE_ADMIN_CREDENTIALS_PATH: str = "./app/core/firebase-credentials.json"
     
     # AWS S3 settings
     AWS_ACCESS_KEY_ID: Optional[str] = os.getenv("AWS_ACCESS_KEY_ID")
@@ -33,8 +50,10 @@ class Settings(BaseSettings):
     MAX_PROFILE_PHOTOS: int = int(os.getenv("MAX_PROFILE_PHOTOS", "6"))
     ENVIRONMENT: str = os.getenv("ENVIRONMENT", "development")
     
-    class Config:
-        env_file = ".env"
-        case_sensitive = True
+    model_config = {
+        "env_file": ".env",
+        "case_sensitive": True
+    }
 
+# Create global settings object
 settings = Settings() 

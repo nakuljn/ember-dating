@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from typing import Optional
-from jose import jwt
+from jose import jwt, JWTError
 from passlib.context import CryptContext
 from app.core.config import settings
 
@@ -25,8 +25,8 @@ def verify_token(token: str):
             token, 
             settings.JWT_SECRET_KEY, 
             algorithms=[settings.JWT_ALGORITHM],
-            options={"verify_exp": True}  # Explicitly verify expiration
+            options={"verify_exp": True, "verify_signature": True}  # Explicitly verify expiration and signature
         )
         return payload
-    except jwt.JWTError:
+    except JWTError:
         return None 
